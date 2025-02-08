@@ -2,7 +2,14 @@
   "name": "@gnosis/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "start:dev": "nest start --watch",
+    "build:backend": "nest build backend",
+    "start:backend": "node dist/backend/main.js",
+    "start:dev:backend": "nest start backend --watch"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/compat": "^1.1.1",
