@@ -1,0 +1,11 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gnosis_db
+    ports:
+      - "5432:5432" 

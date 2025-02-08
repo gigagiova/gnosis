@@ -1,4 +1,9 @@
-.PHONY: run start-back start-front stop
+.PHONY: start start-back start-front start-db run stop
+
+# Start the PostgreSQL DB using docker-compose
+start-db:
+	@echo "Starting PostgreSQL DB..."
+	@docker-compose up -d
 
 start-back:
 	@echo "Starting backend..."
@@ -7,6 +12,10 @@ start-back:
 start-front:
 	@echo "Starting frontend..."
 	@npx nx run frontend:dev
+
+# Composite command: starts the DB, backend, and frontend
+start: start-db start-back start-front
+	@echo "All services started: DB, backend, and frontend."
 
 run: start-back start-front
 	@echo "Both backend and frontend have been started."
