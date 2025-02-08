@@ -1,4 +1,4 @@
-.PHONY: start start-back start-front start-db run stop
+.PHONY: start start-back start-front start-db run stop lint
 
 # Start the PostgreSQL DB using docker-compose
 start-db:
@@ -25,3 +25,7 @@ stop:
 	@pkill -f "nx run backend:dev" || true
 	@echo "Stopping frontend..."
 	@pkill -f "nx run frontend:dev" || true
+
+lint:
+	@echo "Linting backend and frontend..."
+	@npx nx run-many --target=lint --projects=backend,frontend
