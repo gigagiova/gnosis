@@ -1,4 +1,12 @@
-.PHONY: start start-back start-front start-db run stop lint
+.PHONY: start start-back start-front start-db run stop lint clean
+
+# Clean the NX cache and stop the daemon
+clean:
+	@echo "Cleaning NX cache and stopping daemon..."
+	@pkill -f "nx" || true
+	@rm -rf .nx
+	@rm -rf node_modules/.cache/nx
+	@npx nx reset
 
 # Start the PostgreSQL DB using docker-compose
 start-db:
@@ -7,11 +15,11 @@ start-db:
 
 start-back:
 	@echo "Starting backend..."
-	@npx nx run backend:serve:development &
+	@NX_DAEMON=false nx run backend:serve:development &
 
 start-front:
 	@echo "Starting frontend..."
-	@npx nx run frontend:dev
+	@nx run frontend:dev
 
 # Composite command: starts the DB, backend, and frontend
 start: start-db start-back start-front
@@ -22,7 +30,7 @@ run: start-back start-front
 
 stop:
 	@echo "Stopping backend..."
-	@pkill -f "nx run backend:dev" || true
+	@pkill -f "nx run backend:serve:development" || true
 	@echo "Stopping frontend..."
 	@pkill -f "nx run frontend:dev" || true
 
