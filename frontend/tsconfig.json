@@ -19,7 +19,13 @@
     "types": [
       "jest",
       "node"
-    ]
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@components/*": ["./components/*"],
+      "@services/*": ["./services/*"]
+    }
   },
   "include": [
     "**/*.ts",
@@ -29,7 +35,8 @@
     "../frontend/.next/types/**/*.ts",
     "../dist/frontend/.next/types/**/*.ts",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "./**/*"
   ],
   "exclude": [
     "node_modules",
