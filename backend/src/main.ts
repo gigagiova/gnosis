@@ -16,6 +16,14 @@ async function bootstrap() {
     credentials: true
   });
   
+  // Add global middleware to disable caching
+  app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  });
+  
   const port = process.env.PORT || 8000;
   await app.listen(port);
   Logger.log(`🚀 Application is running on: http://localhost:${port}`);

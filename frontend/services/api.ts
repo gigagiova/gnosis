@@ -2,8 +2,19 @@ import axios from 'axios'
 import { Essay, CreateEssayDto, UpdateEssayDto } from '@gnosis/models'
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  headers: {
+    'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  }
 })
+
+// Add timestamp to URLs to prevent caching
+const addTimestamp = (url: string) => {
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}t=${Date.now()}`
+}
 
 export type { Essay }
 
@@ -29,12 +40,12 @@ const transformEssay = (data: RawEssayResponse): Essay => ({
 
 export const essayService = {
   getAll: async (): Promise<Essay[]> => {
-    const { data } = await api.get<RawEssayResponse[]>('/essays')
+    const { data } = await api.get<RawEssayResponse[]>(addTimestamp('/essays'))
     return data.map(transformEssay)
   },
 
   getOne: async (id: string): Promise<Essay> => {
-    const { data } = await api.get<RawEssayResponse>(`/essays/${id}`)
+    const { data } = await api.get<RawEssayResponse>(addTimestamp(`/essays/${id}`))
     if (!data) throw new Error('Essay not found')
     return transformEssay(data)
   },
@@ -42,18 +53,18 @@ export const essayService = {
   create: async (title: string): Promise<Essay> => {
     const essayData: CreateEssayDto = {
       title,
-      contents: `# ${title}\n\nStart writing your essay here...`
+      contents: ''
     }
-    const { data } = await api.post<RawEssayResponse>('/essays', essayData)
+    const { data } = await api.post<RawEssayResponse>(addTimestamp('/essays'), essayData)
     return transformEssay(data)
   },
 
-  update: async (id: string, contents: string): Promise<Essay> => {
+  update: async (id: string, contents: string, title: string): Promise<Essay> => {
     const updateData: UpdateEssayDto = {
-      title: contents.split('\n')[0].replace('# ', ''),
+      title,
       contents
     }
-    const { data } = await api.put<RawEssayResponse>(`/essays/${id}`, updateData)
+    const { data } = await api.put<RawEssayResponse>(addTimestamp(`/essays/${id}`), updateData)
     return transformEssay(data)
   }
 }

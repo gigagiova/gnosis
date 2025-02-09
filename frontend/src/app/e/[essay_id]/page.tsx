@@ -1,34 +1,55 @@
 import React from 'react'
-import EssayEditor from '@components/EssayEditor'
-import ChatPanel from '@components/ChatPanel'
 import { essayService } from '@services/api'
+import EssayWorkspace from './EssayWorkspace'
+import { revalidatePath } from 'next/cache'
+
+// Disable all data caching
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 async function getEssay(id: string) {
-  return essayService.getOne(id)
+  const timestamp = Date.now()
+  const response = await fetch(`${API_URL}/essays/${id}?t=${timestamp}`, {
+    next: { tags: ['essay'] },
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }
+  })
+  if (!response.ok) throw new Error('Essay not found')
+  const data = await response.json()
+  return data
 }
 
-async function updateEssay(id: string, contents: string) {
+async function updateEssay(id: string, contents: string, title: string) {
   'use server'
-  return essayService.update(id, contents)
+  await essayService.update(id, contents, title)
+  // Force a full page refresh after update
+  revalidatePath(`/e/${id}`)
 }
 
-export default async function EssayPage({ params }: { params: { essay_id: string } }) {
+export default async function EssayPage({ 
+  params,
+  searchParams 
+}: { 
+  params: { essay_id: string }
+  searchParams: { t?: string }
+}) {
   const essay = await getEssay(params.essay_id)
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#121212', color: '#FFFFFF' }}>
-      <div className="w-1/4 border-r border-gray-700 p-4">
-        <ChatPanel />
-      </div>
-      <div className="flex-1 p-4">
-        <EssayEditor 
-          initialContent={essay.contents}
-          onSave={async (contents: string) => {
-            'use server'
-            await updateEssay(params.essay_id, contents)
-          }}
-        />
-      </div>
-    </div>
+    <EssayWorkspace 
+      initialContent={essay.contents}
+      initialTitle={essay.title}
+      onSave={async (contents: string, title: string) => {
+        'use server'
+        await updateEssay(params.essay_id, contents, title)
+      }}
+    />
   )
 } 

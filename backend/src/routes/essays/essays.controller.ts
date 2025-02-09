@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, HttpException, HttpStatus } from '@nestjs/common'
+import { Controller, Get, Post, Put, Body, Param, HttpException, HttpStatus, Header } from '@nestjs/common'
 import { PrismaService } from '../../shared/prisma/prisma.service'
 import { Essay, CreateEssayDto, UpdateEssayDto } from '@gnosis/models'
 
@@ -7,6 +7,9 @@ export class EssaysController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
+  @Header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
   async findAll(): Promise<Essay[]> {
     return this.prisma.essay.findMany({
       orderBy: { created_at: 'desc' }
@@ -14,6 +17,9 @@ export class EssaysController {
   }
 
   @Get(':id')
+  @Header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
   async findOne(@Param('id') id: string): Promise<Essay> {
     const essay = await this.prisma.essay.findUnique({
       where: { id }
@@ -27,6 +33,9 @@ export class EssaysController {
   }
 
   @Post()
+  @Header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
   async create(@Body() data: CreateEssayDto): Promise<Essay> {
     return this.prisma.essay.create({
       data: {
@@ -37,6 +46,9 @@ export class EssaysController {
   }
 
   @Put(':id')
+  @Header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
   async update(@Param('id') id: string, @Body() data: UpdateEssayDto): Promise<Essay> {
     try {
       return await this.prisma.essay.update({
