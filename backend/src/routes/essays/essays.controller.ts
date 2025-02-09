@@ -1,20 +1,20 @@
 import { Controller, Get, Post, Put, Body, Param, HttpException, HttpStatus } from '@nestjs/common'
 import { PrismaService } from '../../shared/prisma/prisma.service'
-import { CreateEssayDto, UpdateEssayDto } from './dto/essay.dto'
+import { Essay, CreateEssayDto, UpdateEssayDto } from '@gnosis/models'
 
 @Controller('essays')
 export class EssaysController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
-  async findAll() {
+  async findAll(): Promise<Essay[]> {
     return this.prisma.essay.findMany({
       orderBy: { created_at: 'desc' }
     })
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<Essay> {
     const essay = await this.prisma.essay.findUnique({
       where: { id }
     })
@@ -27,7 +27,7 @@ export class EssaysController {
   }
 
   @Post()
-  async create(@Body() data: CreateEssayDto) {
+  async create(@Body() data: CreateEssayDto): Promise<Essay> {
     return this.prisma.essay.create({
       data: {
         title: data.title,
@@ -37,7 +37,7 @@ export class EssaysController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateEssayDto) {
+  async update(@Param('id') id: string, @Body() data: UpdateEssayDto): Promise<Essay> {
     try {
       return await this.prisma.essay.update({
         where: { id },
