@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Body, Param, HttpException, HttpStatus } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
+import { PrismaService } from '../../shared/prisma/prisma.service'
 import { CreateEssayDto, UpdateEssayDto } from './dto/essay.dto'
 
 @Controller('essays')

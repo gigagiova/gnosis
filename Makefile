@@ -1,4 +1,4 @@
-.PHONY: start start-back start-front start-db run stop stop-back stop-front stop-db restart-back lint clean test test-be test-be-unit test-be-e2e test-be-deps
+.PHONY: start start-back start-front start-db run stop stop-back stop-front stop-db restart-back lint clean test test-be test-be-unit test-be-e2e test-be-deps wait-for-db migrate-db db-reset db-clean wait-for-test-db
 
 # Clean the NX cache and stop the daemon
 clean:
@@ -12,6 +12,32 @@ clean:
 start-db:
 	@echo "Starting PostgreSQL DB..."
 	@docker-compose up -d
+	@make wait-for-db
+	@make migrate-db
+
+# Wait for PostgreSQL to be ready
+wait-for-db:
+	@echo "Waiting for PostgreSQL to be ready..."
+	@until docker exec gnosis-postgres-1 pg_isready -h localhost -U postgres > /dev/null 2>&1; do \
+		echo "Waiting for PostgreSQL to start..."; \
+		sleep 2; \
+	done
+	@echo "PostgreSQL is accepting connections!"
+	@echo "Waiting for PostgreSQL to be fully ready..."
+	@sleep 5
+	@echo "PostgreSQL is ready!"
+
+# Run database migrations with retries
+migrate-db:
+	@echo "Running database migrations..."
+	@for i in 1 2 3; do \
+		if npx prisma migrate deploy; then \
+			exit 0; \
+		fi; \
+		echo "Migration attempt $$i failed. Retrying..."; \
+		sleep 5; \
+	done; \
+	exit 1
 
 # Stop the PostgreSQL DB
 stop-db:
@@ -22,6 +48,7 @@ stop-db:
 start-back:
 	@echo "Starting backend..."
 	@cp .env backend/.env
+	@cd backend && npx prisma generate --schema=../prisma/schema.prisma
 	@cd backend && ts-node src/main.ts &
 	@echo "Backend started on port 8000"
 
@@ -67,11 +94,27 @@ test-be-deps:
 	@echo "Generating Prisma client..."
 	@cd backend && npx prisma generate --schema=../prisma/schema.prisma
 
+# Wait for test PostgreSQL to be ready
+wait-for-test-db:
+	@echo "Waiting for test PostgreSQL to be ready..."
+	@until docker exec gnosis-postgres-test-1 pg_isready -h localhost -U postgres > /dev/null 2>&1; do \
+		echo "Waiting for test PostgreSQL to start..."; \
+		sleep 2; \
+	done
+	@echo "Test PostgreSQL is accepting connections!"
+	@echo "Waiting for test PostgreSQL to be fully ready..."
+	@sleep 5
+	@echo "Test PostgreSQL is ready!"
+
 test-db-setup:
 	@echo "Setting up test database..."
 	@docker-compose -f docker-compose.test.yml up -d
-	@sleep 2
+	@make wait-for-test-db
 	@DATABASE_URL="postgresql://postgres:postgres@localhost:5433/gnosis_test_db" npx prisma migrate deploy
+
+test-db-teardown:
+	@echo "Tearing down test database..."
+	@docker-compose -f docker-compose.test.yml down -v
 
 test-be-unit: test-be-deps
 	@echo "Running backend unit tests..."
@@ -80,8 +123,7 @@ test-be-unit: test-be-deps
 test-be-e2e: test-be-deps test-db-setup
 	@echo "Running backend e2e tests..."
 	@cd backend && DATABASE_URL="postgresql://postgres:postgres@localhost:5433/gnosis_test_db" NODE_ENV=test npx jest --config=test/jest-e2e.json --testRegex="\\.e2e-spec\\.ts$$" --testPathPattern=test/
-	@docker-compose -f docker-compose.test.yml down
-	@rm -f backend/.env
+	@make test-db-teardown
 
 test-be: test-be-unit test-be-e2e
 	@echo "Backend tests completed."
@@ -89,3 +131,15 @@ test-be: test-be-unit test-be-e2e
 # Default test command that runs all tests
 test: test-be
 	@echo "All tests completed."
+
+# Database management commands
+db-reset: stop-db
+	@echo "Resetting database..."
+	@docker volume rm gnosis_postgres_data || true
+	@make start-db
+	@echo "Database reset completed."
+
+db-clean:
+	@echo "Cleaning database (keeping structure)..."
+	@docker exec gnosis-postgres-1 psql -U postgres -d gnosis_db -c "DO \$$\$$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE'; END LOOP; END \$$\$$;"
+	@echo "Database cleaned."

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
-import { EssaysController } from './essays/essays.controller'
-import { PrismaService } from './prisma/prisma.service'
+import { EssaysController } from './routes/essays/essays.controller'
+import { PrismaService } from './shared/prisma/prisma.service'
 
 @Module({
   imports: [],
