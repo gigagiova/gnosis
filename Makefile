@@ -87,8 +87,9 @@ lint:
 
 # Test commands
 test-be-deps:
-	@echo "Installing backend test dependencies..."
-	@cd backend && npm install
+	@echo "Installing and building dependencies..."
+	@npx nx run backend:build
+	@npx nx run models:build
 	@echo "Copying .env file to backend directory..."
 	@cp .env backend/.env
 	@echo "Generating Prisma client..."

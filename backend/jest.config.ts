@@ -12,7 +12,7 @@ const config: Config = {
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1'
+    '^@gnosis/models$': join(__dirname, '../models/src/index.ts')
   }
 }
 

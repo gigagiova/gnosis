@@ -1,2 +1,2 @@
-export * from './lib/models.js';
+export * from './lib/models'
 export * from './lib/essay.model'

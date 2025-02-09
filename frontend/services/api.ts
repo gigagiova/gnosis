@@ -8,9 +8,20 @@ const api = axios.create({
 export type { Essay }
 
 /**
+ * Raw essay data as received from the API before date transformation
+ */
+interface RawEssayResponse {
+  id: string
+  title: string
+  contents: string
+  created_at: string
+  updated_at: string
+}
+
+/**
  * Transforms raw API response to Essay type with proper Date objects
  */
-const transformEssay = (data: any): Essay => ({
+const transformEssay = (data: RawEssayResponse): Essay => ({
   ...data,
   created_at: new Date(data.created_at),
   updated_at: new Date(data.updated_at)
@@ -18,12 +29,12 @@ const transformEssay = (data: any): Essay => ({
 
 export const essayService = {
   getAll: async (): Promise<Essay[]> => {
-    const { data } = await api.get('/essays')
+    const { data } = await api.get<RawEssayResponse[]>('/essays')
     return data.map(transformEssay)
   },
 
   getOne: async (id: string): Promise<Essay> => {
-    const { data } = await api.get(`/essays/${id}`)
+    const { data } = await api.get<RawEssayResponse>(`/essays/${id}`)
     if (!data) throw new Error('Essay not found')
     return transformEssay(data)
   },
@@ -33,7 +44,7 @@ export const essayService = {
       title,
       contents: `# ${title}\n\nStart writing your essay here...`
     }
-    const { data } = await api.post('/essays', essayData)
+    const { data } = await api.post<RawEssayResponse>('/essays', essayData)
     return transformEssay(data)
   },
 
@@ -42,7 +53,7 @@ export const essayService = {
       title: contents.split('\n')[0].replace('# ', ''),
       contents
     }
-    const { data } = await api.put(`/essays/${id}`, updateData)
+    const { data } = await api.put<RawEssayResponse>(`/essays/${id}`, updateData)
     return transformEssay(data)
   }
 }
