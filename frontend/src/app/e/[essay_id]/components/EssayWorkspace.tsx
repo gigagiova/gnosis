@@ -4,7 +4,7 @@ import React, { useCallback, useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Header } from './Header'
 import EssayEditor from './EssayEditor'
-import ChatPanel from '@components/ChatPanel'
+import ChatPanel from './ChatPanel'
 
 // Types for the saving status
 type SavingStatus = 'saved' | 'saving' | 'unsaved'
@@ -28,6 +28,52 @@ export const EssayWorkspace: React.FC<EssayWorkspaceProps> = ({
   const contentTimeoutRef = useRef<NodeJS.Timeout>()
   const titleTimeoutRef = useRef<NodeJS.Timeout>()
   const isSavingRef = useRef(false)
+  const [editorWidth, setEditorWidth] = useState(65)
+  const isDraggingRef = useRef(false)
+
+  // Handle mouse down on the resizer
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    isDraggingRef.current = true
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  // Handle mouse move while dragging
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingRef.current) return
+
+    const container = document.getElementById('workspace-container')
+    if (!container) return
+
+    const containerRect = container.getBoundingClientRect()
+    const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100
+
+    // Constrain the width between 20% and 80%
+    const constrainedWidth = Math.min(Math.max(newWidth, 20), 80)
+    setEditorWidth(constrainedWidth)
+  }, [])
+
+  // Handle mouse up to stop dragging
+  const handleMouseUp = useCallback(() => {
+    isDraggingRef.current = false
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+  }, [handleMouseMove])
+
+  // Cleanup event listeners on unmount
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      if (contentTimeoutRef.current) {
+        clearTimeout(contentTimeoutRef.current)
+      }
+      if (titleTimeoutRef.current) {
+        clearTimeout(titleTimeoutRef.current)
+      }
+    }
+  }, [handleMouseMove, handleMouseUp])
 
   // Save function that ensures we don't have concurrent saves
   const saveChanges = useCallback(async (newContent: string, newTitle: string) => {
@@ -77,21 +123,12 @@ export const EssayWorkspace: React.FC<EssayWorkspaceProps> = ({
     }, 500)
   }, [content, saveChanges])
 
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (contentTimeoutRef.current) {
-        clearTimeout(contentTimeoutRef.current)
-      }
-      if (titleTimeoutRef.current) {
-        clearTimeout(titleTimeoutRef.current)
-      }
-    }
-  }, [])
-
   return (
-    <div className="min-h-screen flex" style={{ background: '#121212', color: '#FFFFFF' }}>
-      <div className="flex-1 max-w-3xl h-screen overflow-y-auto mr-1 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-500/40 [&::-webkit-scrollbar-thumb:hover]:bg-gray-500/60 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-track]:m-1">
+    <div id="workspace-container" className="min-h-screen flex w-full select-none neutral-900">
+      <div 
+        className="h-screen overflow-y-auto mr-0 [&::-webkit-scrollbar]:w-[4px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-500/40 [&::-webkit-scrollbar-thumb:hover]:bg-gray-500/60 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-track]:m-1"
+        style={{ width: `${editorWidth}%` }}
+      >
         <Header 
           status={savingStatus} 
           title={title}
@@ -105,7 +142,17 @@ export const EssayWorkspace: React.FC<EssayWorkspaceProps> = ({
           />
         </div>
       </div>
-      <div className="w-1/3 min-w-[400px] border-l border-gray-700 h-screen">
+
+      {/* Draggable resizer */}
+      <div
+        className="w-[4px] bg-transparent hover:bg-blue-500 cursor-col-resize transition-all duration-150"
+        onMouseDown={handleMouseDown}
+      />
+
+      <div 
+        className="border-l border-neutral-700 h-screen"
+        style={{ width: `${100 - editorWidth}%` }}
+      >
         <ChatPanel />
       </div>
     </div>
