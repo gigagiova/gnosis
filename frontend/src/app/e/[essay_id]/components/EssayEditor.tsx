@@ -7,11 +7,13 @@ import Placeholder from '@tiptap/extension-placeholder'
 import TurndownService from 'turndown'
 import { marked } from 'marked'
 
+// Initialize turndown service for markdown conversion
 const turndown = new TurndownService({
   headingStyle: 'atx',
   codeBlockStyle: 'fenced'
 })
 
+// Props interface for the component
 interface EssayEditorProps {
   initialContent: string
   onChange?: (content: string) => void
@@ -49,10 +51,10 @@ const EssayEditor: React.FC<EssayEditorProps> = ({
   })
 
   return (
-    <div className="h-full">
+    <div className="h-full overflow-hidden">
       <EditorContent 
         editor={editor} 
-        className="h-full [&_.ProseMirror]:h-full [&_.ProseMirror]:px-0 [&_.ProseMirror]:leading-relaxed
+        className="h-full overflow-y-auto px-1 [&_.ProseMirror]:h-full [&_.ProseMirror]:px-0 [&_.ProseMirror]:leading-relaxed
           [&_.ProseMirror>p]:my-2
           [&_.ProseMirror>h1]:text-3xl [&_.ProseMirror>h1]:font-bold [&_.ProseMirror>h1]:mt-6 [&_.ProseMirror>h1]:mb-3 [&_.ProseMirror>h1]:font-playfair
           [&_.ProseMirror>h2]:text-2xl [&_.ProseMirror>h2]:font-bold [&_.ProseMirror>h2]:mt-5 [&_.ProseMirror>h2]:mb-3 [&_.ProseMirror>h2]:font-playfair

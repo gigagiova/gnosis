@@ -1,6 +1,6 @@
 import React from 'react'
 import { essayService } from '@services/api'
-import EssayWorkspace from './EssayWorkspace'
+import { EssayWorkspace } from './components/EssayWorkspace'
 import { revalidatePath } from 'next/cache'
 
 // Disable all data caching
@@ -10,6 +10,7 @@ export const fetchCache = 'force-no-store'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+// Function to fetch essay data
 async function getEssay(id: string) {
   const timestamp = Date.now()
   const response = await fetch(`${API_URL}/essays/${id}?t=${timestamp}`, {
@@ -26,6 +27,7 @@ async function getEssay(id: string) {
   return data
 }
 
+// Function to update essay data
 async function updateEssay(id: string, contents: string, title: string) {
   'use server'
   await essayService.update(id, contents, title)
@@ -33,6 +35,7 @@ async function updateEssay(id: string, contents: string, title: string) {
   revalidatePath(`/e/${id}`)
 }
 
+// Main page component
 export default async function EssayPage({ 
   params,
   searchParams 
