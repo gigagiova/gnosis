@@ -22,7 +22,7 @@ export default function ChatPanel() {
   }
 
   return (
-    <div className="h-full w-full flex flex-col bg-neutral-950">
+    <div className="h-full w-full flex flex-col">
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto px-4 space-y-4">
         <div className="max-w-[600px] mx-auto w-full space-y-4">
@@ -38,14 +38,14 @@ export default function ChatPanel() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Message Gnosis..."
-              className="w-full resize-none rounded-lg border border-neutral-800 bg-neutral-900 pl-4 pr-11 py-3 
-              text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-700 focus:outline-none focus:ring-0
+              className="w-full resize-none rounded-lg border border-neutral-800 bg-neutral-800 pl-4 pr-11 py-3 
+              text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-600 focus:outline-none focus:ring-0
               h-[44px] min-h-[44px] max-h-[200px] leading-[1.5] text-[13px]"
             />
             <button
               type="submit"
               className="absolute right-2 top-[8px] flex items-center justify-center h-7 w-7 rounded-md 
-              bg-neutral-800 hover:bg-neutral-700 disabled:opacity-30 disabled:hover:bg-neutral-800
+              bg-neutral-700 hover:bg-neutral-600 disabled:opacity-30 disabled:hover:bg-neutral-700
               transition-all duration-150 group"
               disabled={!message.trim()}
             >

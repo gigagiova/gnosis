@@ -2,7 +2,7 @@ import React from 'react'
 import { redirect } from 'next/navigation'
 import { essayService } from '@services/api'
 import type { Essay } from '@gnosis/models'
-import { EssayCard, CreateNewCard } from '@/components/EssayCard'
+import { EssayCard, CreateNewCard } from '@/src/components/EssayCard'
 
 // Since this is a Server Component, we need to fetch data server-side
 async function getEssays(): Promise<Essay[]> {

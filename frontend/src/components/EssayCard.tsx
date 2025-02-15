@@ -22,16 +22,18 @@ export function EssayCard({ essay }: EssayCardProps) {
       href={`/e/${essay.id}`} 
       className="block no-underline group"
     >
-      <div className="h-[280px] rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors cursor-pointer overflow-hidden flex flex-col">
+      <div className="h-[280px] rounded-lg border border-border bg-card/20 hover:bg-accent/20 transition-colors 
+      cursor-pointer overflow-hidden flex flex-col">
         {/* Preview Section */}
-        <div className="flex-1 p-6 text-muted-foreground text-sm overflow-hidden prose prose-invert prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-headings:font-serif">
+        <div className="flex-1 p-6 text-muted-foreground text-sm overflow-hidden prose prose-invert prose-sm max-w-none 
+        prose-p:my-1 prose-headings:my-2 prose-headings:font-serif">
           <ReactMarkdown>
             {contentPreview}
           </ReactMarkdown>
         </div>
         
         {/* Title Section */}
-        <div className="p-4 border-t border-border bg-background/50 group-hover:bg-accent/30 transition-colors">
+        <div className="p-4 border-t border-border bg-background/20 group-hover:bg-accent/20 transition-colors">
           <h2 className="font-serif text-base font-bold text-card-foreground leading-snug tracking-tight truncate">
             {essay.title || "Untitled"}
           </h2>
@@ -51,7 +53,8 @@ export function CreateNewCard({ onCreate }: CreateNewCardProps) {
     <form action={onCreate}>
       <button 
         type="submit"
-        className="w-full h-[280px] rounded-lg border border-dashed border-border bg-card hover:bg-accent/50 transition-colors cursor-pointer overflow-hidden flex flex-col items-center justify-center group"
+        className="w-full h-[280px] rounded-lg border border-dashed border-border bg-card/20 hover:bg-accent/20 
+        transition-colors cursor-pointer overflow-hidden flex flex-col items-center justify-center group"
       >
         <div className="text-4xl text-muted-foreground mb-2 group-hover:scale-110 transition-transform">+</div>
         <div className="text-muted-foreground font-medium">Create new essay</div>
