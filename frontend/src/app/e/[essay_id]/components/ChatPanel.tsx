@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { ArrowUpIcon } from 'lucide-react'
-import { Thread, Message, MessageRole } from '@gnosis/models'
-import { threadService } from '@/services/threadService'
+import { Message, MessageRole } from '@gnosis/models'
 import { messageService } from '@/services/messageService'
+import { essayService } from '@/services/essayService'
 
 interface ChatPanelProps {
   essayId: string
@@ -12,18 +12,36 @@ interface ChatPanelProps {
 
 export default function ChatPanel({ essayId }: ChatPanelProps) {
   const [message, setMessage] = useState('')
-  const [thread, setThread] = useState<Thread | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  // #region useEffect
+
+  // Load initial messages
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const essay = await essayService.getOne(essayId)
+        // Only load messages that don't belong to threads
+        setMessages(essay.messages || [])
+      } catch (error) {
+        console.error('Error loading messages:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadMessages()
+  }, [essayId])
+
   // Initialize textarea height
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = '44px'
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-    }
+    if (!textareaRef.current) return
+    textareaRef.current.style.height = '44px'
+    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
   }, [message])
 
   // Scroll to bottom when messages update
@@ -46,9 +64,7 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
       await messageService.create({
         essayId,
         content: userContent,
-        onMessageUpdate: (updatedMessages) => {
-          setMessages(updatedMessages)
-        }
+        onMessageUpdate: (updatedMessages) => setMessages(updatedMessages)
       })
     } catch (error) {
       console.error('Error sending message:', error)
@@ -57,25 +73,33 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
     }
   }
 
-  const isSubmitDisabled = !message.trim() || isStreaming
+  // #endregion useEffect
+
+  const isSubmitDisabled = useMemo(() => !message.trim() || isStreaming, [message, isStreaming])
+
+  console.log(messages)
 
   return (
     <div className="h-full w-full flex flex-col">
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto px-4 space-y-4">
-        <div className="max-w-[600px] mx-auto w-full space-y-4">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`p-4 rounded-lg ${
-                msg.role === MessageRole.user
-                  ? 'bg-neutral-800 ml-auto'
-                  : 'bg-neutral-900'
-              } ${msg.role === MessageRole.user ? 'ml-12' : 'mr-12'}`}
-            >
-              <p className="text-sm text-neutral-200">{msg.content}</p>
-            </div>
-          ))}
+        <div className="max-w-[600px] mx-auto w-full space-y-4 py-4">
+          {isLoading ? (
+            <div className="text-center text-neutral-500">Loading messages...</div>
+          ) : (
+            messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`p-4 rounded-lg ${
+                  msg.role === MessageRole.user
+                    ? 'bg-neutral-800 ml-auto'
+                    : 'bg-neutral-900'
+                } ${msg.role === MessageRole.user ? 'ml-12' : 'mr-12'}`}
+              >
+                <p className="text-sm text-neutral-200">{msg.content}</p>
+              </div>
+            ))
+          )}
           <div ref={messagesEndRef} />
         </div>
       </div>

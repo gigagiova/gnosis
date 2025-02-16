@@ -1,3 +1,6 @@
+import { Message } from './message.model'
+import { Thread } from './thread.model'
+
 /**
  * Represents an essay in the system
  */
@@ -12,6 +15,18 @@ export interface Essay {
   created_at: Date
   /** When the essay was last updated */
   updated_at: Date
+  /** Messages associated with the essay that don't belong to any thread */
+  messages?: Message[]
+  /** Threads associated with the essay */
+  threads?: Thread[]
+}
+
+/**
+ * Full essay data with required messages and threads
+ */
+export interface FullEssay extends Essay {
+  messages: Message[]
+  threads: (Thread & { messages: Message[] })[]
 }
 
 /**

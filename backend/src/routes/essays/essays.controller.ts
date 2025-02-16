@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Body, Param, HttpException, HttpStatus, Res, Headers, HttpCode } from '@nestjs/common'
 import { Response } from 'express'
 import { PrismaService } from '../../shared/prisma/prisma.service'
-import { Essay, CreateEssayDto, UpdateEssayDto, CreateMessageDto } from '@gnosis/models'
+import { Essay, CreateEssayDto, UpdateEssayDto, CreateMessageDto, MessageRole, FullEssay } from '@gnosis/models'
 import { MessageService } from '../../services/message.service'
 
 @Controller('essays')
@@ -13,16 +13,43 @@ export class EssaysController {
 
   @Get()
   async findAll(): Promise<Essay[]> {
-    return this.prisma.essay.findMany({orderBy: {created_at: 'desc'}})
+    return this.prisma.essay.findMany({
+      orderBy: { created_at: 'desc' }
+    })
   }
 
   @Get(':essayId')
-  async findOne(@Param('essayId') essayId: string): Promise<Essay> {
-    const essay = await this.prisma.essay.findUnique({where: { id: essayId }})
+  async findOne(@Param('essayId') essayId: string): Promise<FullEssay> {
+    
+    const essay = await this.prisma.essay.findUnique({
+      where: { id: essayId },
+      include: {
+        messages: {
+          where: { thread_id: null },
+          orderBy: { created_at: 'asc' }
+        },
+        threads: {
+          include: {
+            messages: {
+              orderBy: { created_at: 'asc' }
+            }
+          }
+        }
+      }
+    })
     
     if (!essay) throw new HttpException('Essay not found', HttpStatus.NOT_FOUND)
     
-    return essay
+    const mappedEssay = {
+      ...essay,
+      messages: essay.messages.map(msg => ({ ...msg, role: msg.role as MessageRole })),
+      threads: essay.threads.map(thread => ({
+        ...thread,
+        messages: thread.messages.map(msg => ({ ...msg, role: msg.role as MessageRole }))
+      }))
+    } as FullEssay
+    
+    return mappedEssay
   }
 
   @Post()

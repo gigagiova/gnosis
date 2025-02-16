@@ -1,25 +1,5 @@
-import { Essay, CreateEssayDto, UpdateEssayDto } from '@gnosis/models'
+import { Essay, CreateEssayDto, UpdateEssayDto, FullEssay } from '@gnosis/models'
 import { api } from './api'
-
-/**
- * Raw essay data as received from the API before date transformation
- */
-interface RawEssayResponse {
-  id: string
-  title: string
-  contents: string
-  created_at: string
-  updated_at: string
-}
-
-/**
- * Transforms raw API response to Essay type with proper Date objects
- */
-const transformEssay = (data: RawEssayResponse): Essay => ({
-  ...data,
-  created_at: new Date(data.created_at),
-  updated_at: new Date(data.updated_at)
-})
 
 export const essayService = {
   getAll: async (): Promise<Essay[]> => {
@@ -27,9 +7,10 @@ export const essayService = {
     return data
   },
 
-  getOne: async (id: string): Promise<Essay> => {
-    const { data } = await api.get<Essay>(`/essays/${id}`)
+  getOne: async (id: string): Promise<FullEssay> => {
+    const { data } = await api.get<FullEssay>(`/essays/${id}`)
     if (!data) throw new Error('Essay not found')
+    console.log('Essay response:', data)
     return data
   },
 
