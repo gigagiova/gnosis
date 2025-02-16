@@ -14,5 +14,7 @@
     "./package.json": "./package.json"
   },
   "nx": {},
-  "dependencies": {}
+  "dependencies": {
+    "zod": "^3.22.4"
+  }
 }

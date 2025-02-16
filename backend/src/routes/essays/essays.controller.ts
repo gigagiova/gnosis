@@ -1,65 +1,71 @@
-import { Controller, Get, Post, Put, Body, Param, HttpException, HttpStatus, Header } from '@nestjs/common'
+import { Controller, Get, Post, Put, Body, Param, HttpException, HttpStatus, Res, Headers, HttpCode } from '@nestjs/common'
+import { Response } from 'express'
 import { PrismaService } from '../../shared/prisma/prisma.service'
-import { Essay, CreateEssayDto, UpdateEssayDto } from '@gnosis/models'
+import { Essay, CreateEssayDto, UpdateEssayDto, CreateMessageDto } from '@gnosis/models'
+import { MessageService } from '../../services/message.service'
 
 @Controller('essays')
 export class EssaysController {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private messageService: MessageService
+  ) {}
 
   @Get()
-  @Header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
-  @Header('Pragma', 'no-cache')
-  @Header('Expires', '0')
   async findAll(): Promise<Essay[]> {
-    return this.prisma.essay.findMany({
-      orderBy: { created_at: 'desc' }
-    })
+    return this.prisma.essay.findMany({orderBy: {created_at: 'desc'}})
   }
 
-  @Get(':id')
-  @Header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
-  @Header('Pragma', 'no-cache')
-  @Header('Expires', '0')
-  async findOne(@Param('id') id: string): Promise<Essay> {
-    const essay = await this.prisma.essay.findUnique({
-      where: { id }
-    })
+  @Get(':essayId')
+  async findOne(@Param('essayId') essayId: string): Promise<Essay> {
+    const essay = await this.prisma.essay.findUnique({where: { id: essayId }})
     
-    if (!essay) {
-      throw new HttpException('Essay not found', HttpStatus.NOT_FOUND)
-    }
+    if (!essay) throw new HttpException('Essay not found', HttpStatus.NOT_FOUND)
     
     return essay
   }
 
   @Post()
-  @Header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
-  @Header('Pragma', 'no-cache')
-  @Header('Expires', '0')
   async create(@Body() data: CreateEssayDto): Promise<Essay> {
-    return this.prisma.essay.create({
-      data: {
-        title: data.title,
-        contents: data.contents
-      }
-    })
+    return this.prisma.essay.create({data})
   }
 
-  @Put(':id')
-  @Header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
-  @Header('Pragma', 'no-cache')
-  @Header('Expires', '0')
-  async update(@Param('id') id: string, @Body() data: UpdateEssayDto): Promise<Essay> {
+  @Put(':essayId')
+  async update(@Param('essayId') essayId: string, @Body() data: UpdateEssayDto): Promise<Essay> {
     try {
-      return await this.prisma.essay.update({
-        where: { id },
-        data: {
-          title: data.title,
-          contents: data.contents
-        }
-      })
+      return await this.prisma.essay.update({where: { id: essayId }, data})
     } catch {
       throw new HttpException('Essay not found', HttpStatus.NOT_FOUND)
     }
+  }
+
+  @Post(':essayId/messages')
+  @HttpCode(200)
+  async createMessage(
+    @Param('essayId') essayId: string,
+    @Body() data: CreateMessageDto,
+    @Res({ passthrough: true }) res: Response,
+    @Headers('accept') accept: string
+  ) {
+    // Check if client accepts SSE
+    if (accept !== 'text/event-stream') {
+      throw new HttpException('Client must accept text/event-stream', HttpStatus.BAD_REQUEST)
+    }
+
+    // Verify essay exists
+    const essay = await this.prisma.essay.findUnique({where: { id: essayId }})
+    if (!essay) throw new HttpException('Essay not found', HttpStatus.NOT_FOUND)
+    
+    // Set up SSE headers
+    res.setHeader('Content-Type', 'text/event-stream')
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('Connection', 'keep-alive')
+    
+    // Create message at essay level (no thread_id)
+    await this.messageService.createAndStreamMessage({
+      content: data.content,
+      essay_id: essayId,
+      res
+    })
   }
 } 

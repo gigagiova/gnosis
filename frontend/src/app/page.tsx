@@ -1,6 +1,6 @@
 import React from 'react'
 import { redirect } from 'next/navigation'
-import { essayService } from '@services/api'
+import { essayService } from '@/services/essayService'
 import type { Essay } from '@gnosis/models'
 import { EssayCard, CreateNewCard } from '@/src/components/EssayCard'
 

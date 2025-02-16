@@ -15,4 +15,10 @@ module.exports = [
   ...baseConfig,
   ...nx.configs['flat/react-typescript'],
   { ignores: ['.next/**/*'] },
+  {
+    rules: {
+      // Allow variable declarations in case clauses
+      'no-case-declarations': 'off'
+    }
+  }
 ];

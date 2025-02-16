@@ -14,12 +14,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MessageRole {
+  user
+  assistant
+}
+
 model Essay {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   title         String
-  contents      String   @db.Text
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  contents      String    @db.Text
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  threads       Thread[]
+  messages      Message[]
 
   @@map("essays")
+}
+
+model Thread {
+  id            String    @id @default(uuid())
+  essay_id      String
+  start_index   Int
+  end_index     Int
+  created_at    DateTime  @default(now())
+  closed_at     DateTime?
+  messages      Message[]
+  essay         Essay     @relation(fields: [essay_id], references: [id])
+
+  @@map("threads")
+}
+
+model Message {
+  id          String      @id @default(uuid())
+  essay_id    String
+  thread_id   String?
+  content     String      @db.Text
+  role        MessageRole
+  created_at  DateTime    @default(now())
+  essay       Essay       @relation(fields: [essay_id], references: [id])
+  thread      Thread?     @relation(fields: [thread_id], references: [id])
+
+  @@map("messages")
 }

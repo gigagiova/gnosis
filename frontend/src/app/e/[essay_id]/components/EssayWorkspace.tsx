@@ -13,12 +13,14 @@ type SavingStatus = 'saved' | 'saving' | 'unsaved'
 interface EssayWorkspaceProps {
   initialContent: string
   initialTitle: string
+  essayId: string
   onSave: (content: string, title: string) => Promise<void>
 }
 
 export const EssayWorkspace: React.FC<EssayWorkspaceProps> = ({ 
   initialContent, 
-  initialTitle, 
+  initialTitle,   
+  essayId,
   onSave 
 }) => {
   const router = useRouter()
@@ -153,7 +155,7 @@ export const EssayWorkspace: React.FC<EssayWorkspaceProps> = ({
         className="border-l border-neutral-700 h-screen"
         style={{ width: `${100 - editorWidth}%` }}
       >
-        <ChatPanel />
+        <ChatPanel essayId={essayId} />
       </div>
     </div>
   )

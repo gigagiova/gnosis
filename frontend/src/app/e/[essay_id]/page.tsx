@@ -1,5 +1,5 @@
 import React from 'react'
-import { essayService } from '@services/api'
+import { essayService } from '@/services/essayService'
 import { EssayWorkspace } from './components/EssayWorkspace'
 import { revalidatePath } from 'next/cache'
 
@@ -49,6 +49,7 @@ export default async function EssayPage({
     <EssayWorkspace 
       initialContent={essay.contents}
       initialTitle={essay.title}
+      essayId={params.essay_id}
       onSave={async (contents: string, title: string) => {
         'use server'
         await updateEssay(params.essay_id, contents, title)
