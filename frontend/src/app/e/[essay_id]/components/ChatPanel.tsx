@@ -98,15 +98,17 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
             messages.map((msg, index) => (
               <div
                 key={msg.id}
-                className={`p-4 rounded-lg ${
-                  msg.role === MessageRole.user
-                    ? 'bg-neutral-800 ml-auto'
-                    : 'bg-neutral-900'
-                } ${msg.role === MessageRole.user ? 'ml-12' : 'mr-12'} ${
-                  index === messages.length - 1 ? 'pb-[100%]' : ''
-                }`}
+                className={`${
+                  msg.role === MessageRole.user ? 'ml-auto text-right ml-8' : 'text-left mr-8'
+                } ${ index === messages.length - 1 ? 'pb-[100%]' : ''}`}
               >
-                <p className="text-sm text-neutral-200">{msg.content}</p>
+                <p 
+                  className={`text-sm inline-block px-4 py-2 rounded-lg ${
+                    msg.role === MessageRole.user ? 'bg-neutral-800 text-neutral-200' : ''
+                  }`}
+                >
+                  {msg.content}
+                </p>
               </div>
             ))
           )}
