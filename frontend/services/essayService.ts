@@ -10,7 +10,6 @@ export const essayService = {
   getOne: async (id: string): Promise<FullEssay> => {
     const { data } = await api.get<FullEssay>(`/essays/${id}`)
     if (!data) throw new Error('Essay not found')
-    console.log('Essay response:', data)
     return data
   },
 

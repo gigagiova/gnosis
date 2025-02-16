@@ -125,7 +125,7 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Message Gnosis..."
+              placeholder="Reach Gnosis..."
               className="w-full resize-none rounded-lg border border-neutral-800 bg-neutral-800 pl-4 pr-11 py-3 
               text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-600 focus:outline-none focus:ring-0
               h-[44px] min-h-[44px] max-h-[200px] leading-[1.5] text-[13px]"
