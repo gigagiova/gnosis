@@ -40,6 +40,13 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    @apply [&::-webkit-scrollbar]:w-[1px] [&::-webkit-scrollbar]:h-[1px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-500/40 [&::-webkit-scrollbar-thumb:hover]:bg-gray-500/60 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-track]:m-1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107, 114, 128, 0.4) transparent;
+  }
+
   body {
     @apply bg-background text-foreground;
   }

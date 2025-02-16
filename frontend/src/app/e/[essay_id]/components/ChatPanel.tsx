@@ -51,7 +51,6 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Submitting message:', message)
     
     if (!message.trim() || isStreaming) return
 
@@ -76,8 +75,6 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
   // #endregion useEffect
 
   const isSubmitDisabled = useMemo(() => !message.trim() || isStreaming, [message, isStreaming])
-
-  console.log(messages)
 
   return (
     <div className="h-full w-full flex flex-col">

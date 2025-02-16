@@ -128,7 +128,7 @@ export const EssayWorkspace: React.FC<EssayWorkspaceProps> = ({
   return (
     <div id="workspace-container" className="min-h-screen flex w-full select-none">
       <div 
-        className="h-screen overflow-y-auto mr-0 [&::-webkit-scrollbar]:w-[4px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-500/40 [&::-webkit-scrollbar-thumb:hover]:bg-gray-500/60 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-track]:m-1"
+        className="h-screen overflow-y-auto mr-0"
         style={{ width: `${editorWidth}%` }}
       >
         <Header 
