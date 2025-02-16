@@ -5,13 +5,13 @@ interface CreateMessageParams {
   essayId: string
   content: string
   threadId?: string
-  onMessageUpdate?: (messages: Message[]) => void
+  setMessages?: React.Dispatch<React.SetStateAction<Message[]>>
 }
 
 // Types for the different SSE events we can receive
 type MessageEvent = {
-  type: 'messages'
-  userMessage: Message
+  type: 'message'
+  message: Message
 } | {
   type: 'chunk'
   content: string
@@ -25,7 +25,7 @@ export const messageService = {
     essayId, 
     content, 
     threadId = undefined,
-    onMessageUpdate 
+    setMessages 
   }: CreateMessageParams): Promise<void> => {
     // Build the URL based on whether it's a thread message or essay message
     const url = threadId 
@@ -50,9 +50,6 @@ export const messageService = {
 
     if (!reader) throw new Error('No reader available')
 
-    // Keep track of messages locally
-    let currentMessages: Message[] = []
-
     try {
       while (true) {
         const { value, done } = await reader.read()
@@ -66,42 +63,39 @@ export const messageService = {
             const data = JSON.parse(event.replace('data: ', '')) as MessageEvent
 
             switch (data.type) {
-              case 'messages':
+              case 'message':
                 // Add user message and prepare for assistant's response
-                currentMessages = [...currentMessages, data.userMessage]
-                if (onMessageUpdate) onMessageUpdate(currentMessages)
+                if (setMessages) setMessages(currentMessages => [...currentMessages, data.message])
                 break
 
               case 'chunk':
                 // Update the assistant's message with new content
-                const updatedMessages = [...currentMessages]
-                const lastMessage = updatedMessages[updatedMessages.length - 1]
-                
-                if (lastMessage?.role === MessageRole.assistant) {
-                  lastMessage.content += data.content
-                } else {
-                  // Create new assistant message if it doesn't exist
-                  updatedMessages.push({
-                    role: MessageRole.assistant,
-                    content: data.content
-                  } as Message)
-                }
-                
-                currentMessages = updatedMessages
-                if (onMessageUpdate) onMessageUpdate(currentMessages)
+                if (setMessages) setMessages(currentMessages => 
+                  currentMessages.map((message, index) => 
+                    // Only update the last message if it's from the assistant
+                    index === currentMessages.length - 1 && message.role === MessageRole.assistant
+                      ? { ...message, content: message.content + data.content }
+                      : message
+                  )
+                )
                 break
 
               case 'done':
-                // Ensure final content is set
-                const finalMessages = [...currentMessages]
-                const finalLastMessage = finalMessages[finalMessages.length - 1]
-                
-                if (finalLastMessage?.role === MessageRole.assistant) {
-                  finalLastMessage.content = data.finalContent
-                }
-                
-                currentMessages = finalMessages
-                if (onMessageUpdate) onMessageUpdate(currentMessages)
+                // Ensure final content is set by updating the last assistant message
+                if (setMessages) setMessages(currentMessages => {
+                  const updatedMessages = [...currentMessages]
+                  const lastMessage = updatedMessages[updatedMessages.length - 1]
+                  
+                  if (lastMessage?.role === MessageRole.assistant) {
+                    // Create a new message object for the final content
+                    updatedMessages[updatedMessages.length - 1] = {
+                      ...lastMessage,
+                      content: data.finalContent
+                    }
+                  }
+                  
+                  return updatedMessages
+                })
                 break
             }
           } catch (error) {

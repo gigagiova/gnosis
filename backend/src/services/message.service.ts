@@ -49,11 +49,8 @@ export class MessageService {
     })
 
     // Send initial messages to client
-    res.write(`data: ${JSON.stringify({ 
-      type: 'messages',
-      userMessage,
-      assistantMessageId: assistantMessage.id 
-    })}\n\n`)
+    res.write(`data: ${JSON.stringify({type: 'message', message: userMessage})}\n\n`)
+    res.write(`data: ${JSON.stringify({type: 'message', message: assistantMessage})}\n\n`)
 
     // TODO: Replace with actual AI integration
     const chunks = ['Hello', ' world', '! How', ' can', ' I', ' help', ' you', ' today', '?']

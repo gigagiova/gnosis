@@ -56,14 +56,13 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
 
     try {
       setIsStreaming(true)
-      const userContent = message.trim()
       setMessage('') // Clear input early
 
       // Start streaming response with callback
       await messageService.create({
         essayId,
-        content: userContent,
-        onMessageUpdate: (updatedMessages) => setMessages(updatedMessages)
+        content: message.trim(),
+        setMessages
       })
     } catch (error) {
       console.error('Error sending message:', error)
@@ -73,6 +72,18 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
   }
 
   // #endregion useEffect
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Check if it's Enter key and not Shift/Ctrl/Cmd + Enter
+    if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault() // Prevent default newline
+      handleSubmit(e)
+    }
+    // Allow new line with Ctrl/Cmd + Enter
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      setMessage(prev => prev + '\n')
+    }
+  }
 
   const isSubmitDisabled = useMemo(() => !message.trim() || isStreaming, [message, isStreaming])
 
@@ -84,14 +95,16 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
           {isLoading ? (
             <div className="text-center text-neutral-500">Loading messages...</div>
           ) : (
-            messages.map((msg) => (
+            messages.map((msg, index) => (
               <div
                 key={msg.id}
                 className={`p-4 rounded-lg ${
                   msg.role === MessageRole.user
                     ? 'bg-neutral-800 ml-auto'
                     : 'bg-neutral-900'
-                } ${msg.role === MessageRole.user ? 'ml-12' : 'mr-12'}`}
+                } ${msg.role === MessageRole.user ? 'ml-12' : 'mr-12'} ${
+                  index === messages.length - 1 ? 'pb-[100%]' : ''
+                }`}
               >
                 <p className="text-sm text-neutral-200">{msg.content}</p>
               </div>
@@ -109,6 +122,7 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
               ref={textareaRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Message Gnosis..."
               className="w-full resize-none rounded-lg border border-neutral-800 bg-neutral-800 pl-4 pr-11 py-3 
               text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-600 focus:outline-none focus:ring-0
@@ -118,14 +132,14 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
             <button
               type="submit"
               className="absolute right-2 top-[8px] flex items-center justify-center h-7 w-7 rounded-md 
-              bg-neutral-700 hover:bg-neutral-600 disabled:opacity-30 disabled:hover:bg-neutral-700
+              bg-neutral-100 disabled:opacity-30 disabled:hover:bg-neutral-700
               transition-all duration-150 group"
               disabled={isSubmitDisabled}
               onClick={handleSubmit}
             >
               <ArrowUpIcon 
                 size={15} 
-                className="text-neutral-400 group-hover:text-neutral-200 transition-colors"
+                className="text-neutral-900 transition-colors"
                 strokeWidth={2.5}
               />
             </button>
