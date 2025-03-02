@@ -23,6 +23,7 @@ export default function ChatPanel({ essayId, setEssay }: ChatPanelProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const messageCountRef = useRef(0) // Tracks the message count to detect new messages
   const lastScrollPositionRef = useRef(0) // Track last scroll position
+  const consecutiveUpScrollsRef = useRef(0) // Track consecutive upward scrolls
 
   // #region useEffect
 
@@ -78,7 +79,16 @@ export default function ChatPanel({ essayId, setEssay }: ChatPanelProps) {
         const currentScrollTop = messagesContainer.scrollTop
         
         // If current position is less than last position, user scrolled UP
-        if (currentScrollTop < lastScrollPositionRef.current) setUserHasScrolledUp(true)
+        if (currentScrollTop < lastScrollPositionRef.current) {
+          // Increment consecutive upward scrolls counter
+          consecutiveUpScrollsRef.current += 1
+          
+          // Only set userHasScrolledUp to true after 2 consecutive upward scrolls
+          if (consecutiveUpScrollsRef.current >= 2) setUserHasScrolledUp(true)
+        } else {
+          // Reset counter when scrolling down
+          consecutiveUpScrollsRef.current = 0
+        }
 
         // Update last position for next comparison
         lastScrollPositionRef.current = currentScrollTop
