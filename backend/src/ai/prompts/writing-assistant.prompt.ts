@@ -55,6 +55,8 @@ This content will be inserted after section 3.
 - The section idexes will change, ALWAYS stick to the structure provided in the system prompt
 - When a user mentions a section, interpret it in terms of markdown structure, not HTML sections
 - If the document is empty, use 0 as the section index to insert the content at the beginning
+- Unless you need to modify a specific section, it is better to insert content in the appropriate place
+- Stick to heading hierarchy, using h1 headings before h2 headings, and h3 only as last resort
 - Use the XML diff format ONLY when the user explicitly asks for modifications
 - When editing is needed, respond with all the diffs needed in a single message
 - For general feedback and suggestions, respond conversationally

@@ -5,6 +5,7 @@ import { ArrowUpIcon } from 'lucide-react'
 import { Message, MessageRole } from '@gnosis/models'
 import { messageService } from '@/services/messageService'
 import { essayService } from '@/services/essayService'
+import { RenderMessageContent } from './DiffRenderer'
 
 interface ChatPanelProps {
   essayId: string
@@ -16,8 +17,12 @@ export default function ChatPanel({ essayId, setEssay }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [userHasScrolledUp, setUserHasScrolledUp] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const messageCountRef = useRef(0) // Tracks the message count to detect new messages
+  const lastScrollPositionRef = useRef(0) // Track last scroll position
 
   // #region useEffect
 
@@ -50,10 +55,45 @@ export default function ChatPanel({ essayId, setEssay }: ChatPanelProps) {
     textareaRef.current.style.height = `${scrollHeight + 2}px`
   }, [message])
 
-  // Scroll to bottom when messages update
+  // Reset user scroll state when a completely new message is added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    // If we have more messages than before, this is a new message (not just an update)
+    if (messages.length > messageCountRef.current) {
+      setUserHasScrolledUp(false)
+      messageCountRef.current = messages.length
+    }
   }, [messages])
+
+  // Detect when user manually scrolls up
+  useEffect(() => {
+    const messagesContainer = messagesContainerRef.current
+    if (!messagesContainer) return
+    
+    // Initialize the last position
+    lastScrollPositionRef.current = messagesContainer.scrollTop
+    
+    // Set flag when user scrolls up during streaming
+    const handleScroll = () => {
+      if (isStreaming) {
+        const currentScrollTop = messagesContainer.scrollTop
+        
+        // If current position is less than last position, user scrolled UP
+        if (currentScrollTop < lastScrollPositionRef.current) setUserHasScrolledUp(true)
+
+        // Update last position for next comparison
+        lastScrollPositionRef.current = currentScrollTop
+      }
+    }
+    
+    messagesContainer.addEventListener('scroll', handleScroll)
+    return () => messagesContainer.removeEventListener('scroll', handleScroll)
+  }, [isStreaming])
+
+  // Scroll to bottom when messages update - but respect user scrolling during streaming
+  useEffect(() => {
+    console.log('userHasScrolledUp', userHasScrolledUp)
+    if (!userHasScrolledUp) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, userHasScrolledUp])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,6 +102,8 @@ export default function ChatPanel({ essayId, setEssay }: ChatPanelProps) {
 
     try {
       setIsStreaming(true)
+      // Reset the scroll state when submitting a new message
+      setUserHasScrolledUp(false)
       setMessage('') // Clear input early
 
       // Start streaming response with callback
@@ -97,7 +139,10 @@ export default function ChatPanel({ essayId, setEssay }: ChatPanelProps) {
   return (
     <div className="h-full w-full flex flex-col">
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-4 space-y-4">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto px-4 space-y-4"
+      >
         <div className="max-w-[600px] mx-auto w-full space-y-4 py-4">
           {isLoading ? (
             <div className="text-center text-neutral-500">Loading messages...</div>
@@ -114,7 +159,11 @@ export default function ChatPanel({ essayId, setEssay }: ChatPanelProps) {
                     msg.role === MessageRole.user ? 'bg-neutral-800 text-neutral-200' : ''
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === MessageRole.assistant ? (
+                    <RenderMessageContent content={msg.content} />
+                  ) : (
+                    msg.content
+                  )}
                 </p>
               </div>
             ))
