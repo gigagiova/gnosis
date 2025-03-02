@@ -44,18 +44,36 @@ stop-db:
 	@echo "Stopping PostgreSQL DB..."
 	@docker-compose down
 
-# Start the backend with ts-node for better development experience
+# Start the backend with ts-node-dev for better development experience
 start-back:
 	@echo "Starting backend..."
 	@cp .env backend/.env
 	@cd backend && npx prisma generate --schema=../prisma/schema.prisma
-	@cd backend && ts-node src/main.ts &
-	@echo "Backend started on port 8000"
+	@cd backend && npx ts-node-dev --respawn --transpile-only src/main.ts &
+	@echo "Backend started on port 8000 with auto-reloading enabled"
+
+# Alternative: Start with nest start
+start-back-nest:
+	@echo "Starting backend with NestJS CLI..."
+	@cp .env backend/.env
+	@cd backend && npx prisma generate --schema=../prisma/schema.prisma
+	@cd backend && npx nest build && npx nest start --watch &
+	@echo "Backend started on port 8000 with file watching enabled"
+
+# Alternative: Start with nodemon for more control over watched files
+start-back-nodemon:
+	@echo "Starting backend with nodemon..."
+	@cp .env backend/.env
+	@cd backend && npx prisma generate --schema=../prisma/schema.prisma
+	@cd backend && npx nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec 'ts-node' src/main.ts &
+	@echo "Backend started on port 8000 with nodemon file watching"
 
 # Stop the backend gracefully
 stop-back:
 	@echo "Stopping backend..."
 	@pkill -f "ts-node src/main.ts" || true
+	@pkill -f "ts-node-dev --respawn" || true
+	@pkill -f "nest start" || true
 	@echo "Backend stopped"
 
 # Restart the backend

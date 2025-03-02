@@ -8,9 +8,10 @@ import { essayService } from '@/services/essayService'
 
 interface ChatPanelProps {
   essayId: string
+  setEssay: React.Dispatch<React.SetStateAction<string>>
 }
 
-export default function ChatPanel({ essayId }: ChatPanelProps) {
+export default function ChatPanel({ essayId, setEssay }: ChatPanelProps) {
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
@@ -67,7 +68,8 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
       await messageService.create({
         essayId,
         content: message.trim(),
-        setMessages
+        setMessages,
+        setEssay
       })
     } catch (error) {
       console.error('Error sending message:', error)

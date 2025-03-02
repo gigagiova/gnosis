@@ -1,3 +1,5 @@
+import { MarkdownDiff } from './types'
+
 /**
  * Class for handling markdown sectioning and reassembly
  * Breaks markdown into logical sections based on headings and length
@@ -108,17 +110,21 @@ export class SectionedMarkdown {
       `<!-- section:${section.index} start -->\n${section.content}\n<!-- section:${section.index} end -->`
     ).join('\n')
   }
+
+  /**
+   * Reassembles the markdown without section delimiters
+   * @returns The markdown without section delimiters
+   */
+  public getMarkdown(): string {
+    return this.sections.map(section => section.content).join('\n')
+  }
   
   /**
    * Applies diffs to the sectioned markdown
    * @param diffs Array of diff operations
    * @returns The updated markdown content
    */
-  public applyDiffs(diffs: Array<{
-    type: 'replace' | 'insert' | 'delete'
-    sectionIndex: number
-    content?: string
-  }>): string {
+  public applyDiffs(diffs: Array<MarkdownDiff>): string {
     // Create a copy of sections to modify
     const updatedSections = [...this.sections]
     
@@ -144,7 +150,7 @@ export class SectionedMarkdown {
             // Insert after the specified section
             updatedSections.splice(sectionIndex + 1, 0, {
               index: Math.max(...updatedSections.map(s => s.index)) + 1,
-              content: diff.content,
+              content: diff.content
             })
           }
           break
@@ -152,6 +158,6 @@ export class SectionedMarkdown {
     }
     
     // Reassemble the content without delimiters
-    return updatedSections.map(section => section.content).join('')
+    return this.getMarkdown()
   }
 }

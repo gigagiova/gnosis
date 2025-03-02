@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -49,6 +49,11 @@ const EssayEditor: React.FC<EssayEditorProps> = ({
     },
     immediatelyRender: false
   })
+  
+  // Use
+  useEffect(() => {
+    if (editor && editor.getHTML() !== marked(initialContent)) editor.commands.setContent(marked(initialContent))
+  }, [editor, initialContent])
 
   return (
     <div className="h-full overflow-hidden">

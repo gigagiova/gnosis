@@ -155,7 +155,7 @@ export const EssayWorkspace: React.FC<EssayWorkspaceProps> = ({
         className="border-l border-neutral-700 h-screen"
         style={{ width: `${100 - editorWidth}%` }}
       >
-        <ChatPanel essayId={essayId} />
+        <ChatPanel essayId={essayId} setEssay={setContent} />
       </div>
     </div>
   )

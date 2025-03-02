@@ -6,6 +6,7 @@ interface CreateMessageParams {
   content: string
   threadId?: string
   setMessages?: React.Dispatch<React.SetStateAction<Message[]>>
+  setEssay?: React.Dispatch<React.SetStateAction<string>>
 }
 
 // Types for the different SSE events we can receive
@@ -18,6 +19,9 @@ type MessageEvent = {
 } | {
   type: 'done'
   finalContent: string
+} | {
+  type: 'essay'
+  essay: string
 }
 
 export const messageService = {
@@ -25,7 +29,8 @@ export const messageService = {
     essayId, 
     content, 
     threadId = undefined,
-    setMessages 
+    setMessages,
+    setEssay
   }: CreateMessageParams): Promise<void> => {
     // Build the URL based on whether it's a thread message or essay message
     const url = threadId 
@@ -96,6 +101,13 @@ export const messageService = {
                   
                   return updatedMessages
                 })
+                break
+
+              case 'essay':
+                // Update the essay with the new content
+                console.log("ESSAY", data.essay)
+                console.log("SET ESSAY", setEssay) 
+                if (setEssay) setEssay(data.essay)
                 break
             }
           } catch (error) {

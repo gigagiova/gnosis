@@ -13,7 +13,7 @@ export abstract class BaseMessage {
     // Replace any template variables in content
     let compiledContent = this.content
     for (const [key, value] of Object.entries(params)) {
-      compiledContent = compiledContent.replace(`{${key}}`, String(value))
+      compiledContent = compiledContent.replace(`${key}`, String(value))
     }
     return { role: this.role, content: compiledContent }
   }
@@ -39,6 +39,13 @@ export class UserMessage extends BaseMessage {
 export class AssistantMessage extends BaseMessage {
   role = 'assistant' as const
 }
+
+/**
+ * Union type representing either a user or assistant message
+ * Used for handling conversation messages that aren't system messages
+ */
+export type ChatMessage = UserMessage | AssistantMessage
+
 
 /**
  * Prompt class that manages a sequence of messages
