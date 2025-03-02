@@ -5,13 +5,18 @@ import { MarkdownDiff } from './types'
  * Breaks markdown into logical sections based on headings and length
  */
 export class SectionedMarkdown {
-  private sections: Array<{index: number, content: string}> = []
+  // Simplified data structure: only store content strings without explicit indices
+  private sections: string[] = []
 
   /**
    * Creates a new SectionedMarkdown and immediately sections the content
    * @param markdown The raw markdown content to section
    */
   constructor(markdown: string) {
+    // If markdown is empty, create no sections
+    if (!markdown) {
+      return
+    }
 
     // First, find all heading positions as potential breakpoints
     const headingPositions: number[] = Array.from(markdown.matchAll(/^(#{1,6} .+)$/gm)).map(match => match.index)
@@ -23,13 +28,13 @@ export class SectionedMarkdown {
     breakpoints = this.preprocessLargeSlices(markdown, breakpoints)
     
     // Now create sections from our pre-processed breakpoints
-    let sectionIndex = 0
     for (let i = 1; i < breakpoints.length; i++) {
       const start = breakpoints[i-1]
       const end = breakpoints[i]
       const content = markdown.substring(start, end)
       
-      this.sections.push({index: sectionIndex++, content})
+      // Add the content to our sections array - the array index is the implicit section index
+      this.sections.push(content)
     }
   }
   
@@ -106,8 +111,8 @@ export class SectionedMarkdown {
    * @returns The markdown with section delimiters
    */
   public getMarkdownWithDelimiters(): string {
-    return this.sections.map(section => 
-      `<!-- section:${section.index} start -->\n${section.content}\n<!-- section:${section.index} end -->`
+    return this.sections.map((content, index) => 
+      `<!-- section:${index} start -->\n${content}\n<!-- section:${index} end -->`
     ).join('\n')
   }
 
@@ -116,7 +121,7 @@ export class SectionedMarkdown {
    * @returns The markdown without section delimiters
    */
   public getMarkdown(): string {
-    return this.sections.map(section => section.content).join('\n')
+    return this.sections.join('\n')
   }
   
   /**
@@ -130,34 +135,41 @@ export class SectionedMarkdown {
     
     // Apply each diff
     for (const diff of diffs) {
-      const sectionIndex = updatedSections.findIndex(s => s.index === diff.sectionIndex)
-      
-      if (sectionIndex === -1) {
-        continue // Skip if section not found
-      }
+      // Use the sectionIndex directly as array index
+      const sectionIndex = diff.sectionIndex
       
       switch (diff.type) {
         case 'replace':
-          if (diff.content) updatedSections[sectionIndex].content = diff.content
+          // Replace content at the specific index if it exists
+          if (diff.content && sectionIndex >= 0 && sectionIndex < updatedSections.length) {
+            updatedSections[sectionIndex] = diff.content
+          }
           break
           
         case 'delete':
-          updatedSections.splice(sectionIndex, 1)
+          // Delete the section if it exists
+          if (sectionIndex >= 0 && sectionIndex < updatedSections.length) {
+            updatedSections.splice(sectionIndex, 1)
+          }
           break
           
         case 'insert':
-          if (diff.content !== undefined) {
-            // Insert after the specified section
-            updatedSections.splice(sectionIndex + 1, 0, {
-              index: Math.max(...updatedSections.map(s => s.index)) + 1,
-              content: diff.content
-            })
-          }
+
+          // if the document is empty or the diff is at the end, push the content to the end
+          if (updatedSections.length === 0 || sectionIndex >= updatedSections.length) 
+            updatedSections.push(diff.content)
+
+          // if the diff is at the beginning of the document, push the content to the beginning
+          else if (sectionIndex <= 0) updatedSections.unshift(diff.content)
+
+          // if the diff is in the middle of the document, insert the content after the specified section
+          else updatedSections.splice(sectionIndex + 1, 0, diff.content)
+
           break
       }
     }
     
-    // Reassemble the content without delimiters
-    return this.getMarkdown()
+    // Reassemble the content
+    return updatedSections.join('\n')
   }
 }

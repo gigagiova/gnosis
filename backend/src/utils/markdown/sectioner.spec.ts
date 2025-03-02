@@ -147,5 +147,17 @@ This content belongs to Heading 3.
       expect(result).not.toContain('# Section 1\nContent 1.')
       expect(result).toContain('# Section 2\nContent 2.')
     })
+
+    it('Should insert sections when empty', () => {
+      const sectioned = new SectionedMarkdown("")
+      
+      const result = sectioned.applyDiffs([{
+        type: 'insert',
+        sectionIndex: 0,
+        content: '# Section 1\nContent 1.'
+      }])
+      
+      expect(result).toContain('# Section 1\nContent 1.')
+    })
   })
 }) 
