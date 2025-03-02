@@ -40,8 +40,13 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
   // Initialize textarea height
   useEffect(() => {
     if (!textareaRef.current) return
+    
+    // Reset height to minimum before calculating the scroll height
     textareaRef.current.style.height = '44px'
-    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+    
+    // Add a small buffer (2px) to prevent scrollbar from appearing
+    const scrollHeight = textareaRef.current.scrollHeight
+    textareaRef.current.style.height = `${scrollHeight + 2}px`
   }, [message])
 
   // Scroll to bottom when messages update
@@ -128,7 +133,7 @@ export default function ChatPanel({ essayId }: ChatPanelProps) {
               placeholder="Reach Gnosis..."
               className="w-full resize-none rounded-lg border border-neutral-800 bg-neutral-800 pl-4 pr-11 py-3 
               text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-600 focus:outline-none focus:ring-0
-              h-[44px] min-h-[44px] max-h-[200px] leading-[1.5] text-[13px]"
+              h-[44px] min-h-[44px] max-h-[200px] leading-[1.5] text-[13px] overflow-hidden"
               disabled={isStreaming}
             />
             <button

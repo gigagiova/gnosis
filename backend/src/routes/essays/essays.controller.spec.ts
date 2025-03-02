@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { EssaysController } from './essays.controller'
 import { PrismaService } from '../../shared/prisma/prisma.service'
+import { MessageService } from '../../services/message.service'
 
 describe('EssaysController', () => {
   let controller: EssaysController
@@ -14,6 +15,10 @@ describe('EssaysController', () => {
     }
   }
 
+  const mockMessageService = {
+    createAndStreamMessage: jest.fn()
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EssaysController],
@@ -21,6 +26,10 @@ describe('EssaysController', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService
+        },
+        {
+          provide: MessageService,
+          useValue: mockMessageService
         }
       ]
     }).compile()

@@ -27,7 +27,7 @@ export class MessageService {
     res
   }: StreamMessageParams) {
     try {
-      this.logger.debug('Starting message stream...')
+      this.logger.debug(`Starting message stream for essay ${essay_id} in thread ${thread_id}...`)
       
       // Check if client accepts SSE
       if (!res.getHeader('Content-Type')) {
@@ -65,13 +65,12 @@ export class MessageService {
       res.write(`data: ${JSON.stringify({type: 'message', message: assistantMessage})}\n\n`)
 
       // Get the AI response stream
-      this.logger.debug('Getting AI response stream...')
       const stream = await this.aiService.streamResponse(userMessage)
       let fullContent = ''
 
       // Create a promise that resolves when the stream completes
       await new Promise<void>((resolve, reject) => {
-        this.logger.debug('Subscribing to AI stream...')
+        
         stream.subscribe({
           next: async (chunk) => {
             
@@ -102,7 +101,6 @@ export class MessageService {
         })
       })
 
-      this.logger.debug('Message stream completed successfully')
     } catch (error) {
       this.logger.error('Error in createAndStreamMessage for essay_id:', essay_id, error)
       throw error

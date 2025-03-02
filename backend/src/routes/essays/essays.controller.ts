@@ -88,11 +88,7 @@ export class EssaysController {
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
     
-    // Create message at essay level (no thread_id)
-    await this.messageService.createAndStreamMessage({
-      content: data.content,
-      essay_id: essayId,
-      res
-    })
+    // Replies to the message at essay level (no thread_id)
+    await this.messageService.createAndStreamMessage({content: data.content, essay_id: essayId, res})
   }
 } 
